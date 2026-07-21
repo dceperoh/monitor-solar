@@ -1,0 +1,28 @@
+name: Monitor Solar Stock
+
+on:
+  schedule:
+    # Ejecutar cada 15 minutos (Cron en UTC)
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente desde la pestaña "Actions"
+
+jobs:
+  check-stock:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run availability check
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
+        run: python main.py
