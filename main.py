@@ -57,6 +57,15 @@ def check_availability():
         send_telegram_alert(msg)
         print("✅ Alerta enviada exitosamente.")
     else:
+        # 👇 CAMBIO: Enviar mensaje de estado cada vez que chequee
+        msg_test = (
+            " *Estado del producto* (Prueba de sistema)\n\n"
+            "Panel Solar Bifacial TRINA SOLAR 500 WP\n"
+            "SKU: `TRINANEG18RC.27-500`\n\n"
+            "⏳ *Aún no disponible* (Próxima disponibilidad)\n\n"
+            f"🕐 Chequeo realizado: {__import__('datetime').datetime.now().strftime('%H:%M:%S')}"
+        )
+        send_telegram_alert(msg_test)
         print("⏳ Producto aún no disponible (Próxima disponibilidad).")
 
 if __name__ == "__main__":
