@@ -73,38 +73,28 @@ def check_availability():
             available_warehouses.append(warehouse)
             print(f"  ✅ {warehouse}: DISPONIBLE")
         else:
-            print(f"   {warehouse}: No disponible")
+            print(f"  ⏳ {warehouse}: No disponible")
         time.sleep(2)
     
     # --- LÓGICA DE MENSAJES ---
     if available_warehouses:
-        # MENSAJE ESTRUENDOSO (Cuando SÍ hay stock)
+        # MENSAJE ESTRUENDOSO (Solo cuando SÍ hay stock)
+        warehouses_text = "\n".join([f"  • {w}" for w in available_warehouses])
         msg = (
             "🚨🚨🚨 *¡¡¡ALERTA MÁXIMA - ¡¡¡STOCK DISPONIBLE!!!* 🚨🚨\n\n"
-            " *¡COMPRA INMEDIATA!* 🟢\n"
-            " *Producto:* Panel Solar Bifacial TRINA SOLAR 500 WP\n"
-            "SKU: `TRINANEG18RC.27-500`\n\n"
-            "✅ *Disponible en:*\n" + 
-            "\n".join([f"  • {w}" for w in available_warehouses]) +
-            "\n\n"
-            "🏃💨 *¡CORRE A LA WEB ANTES DE QUE SE AGOTE!*\n"
+            " *Estado:* ¡COMPRA INMEDIATA!\n"
+            "📦 *Producto:* Panel Solar Bifacial TRINA SOLAR 500 WP\n"
+            "🔢 *SKU:* `TRINANEG18RC.27-500`\n\n"
+            "✅ *Disponible en:*\n" + warehouses_text + "\n\n"
+            "🏃💨 *¡Corre compra 7 paneles que se acaban y a nombre de Dayli...jjjj!*\n\n"
             "🔗 [Ir a Tienda Solar](https://tiendasolar.com/categoria-producto/fotovoltaica/paneles-solares/)"
         )
         send_telegram_alert(msg)
-        print("🚨 Alerta de DISPONIBILIDAD enviada.")
+        print("🚨 ¡Alerta de DISPONIBILIDAD enviada a Telegram!")
         
     else:
-        # MENSAJE DE MONITOREO (Cuando NO hay stock, pero avisa que revisó)
-        msg = (
-            "🚨 *ALERTA DE MONITOREO - SIN STOCK* \n\n"
-            "🔍 *Estado:* Revisado hace un momento.\n"
-            "📦 *Producto:* Panel Solar TRINA 500 WP\n"
-            " *Almacenes:* Miramar y Siboney\n\n"
-            "⛔ *Resultado:* AÚN NO DISPONIBLE.\n\n"
-            "🔔 *El sistema seguirá vigilando cada 15 minutos.*"
-        )
-        send_telegram_alert(msg)
-        print(" Alerta de MONITOREO enviada.")
+        # SILENCIO ABSOLUTO (No envía nada, solo log en GitHub)
+        print("⏳ Producto no disponible. (Modo sigilo: no se envía mensaje a Telegram)")
 
 if __name__ == "__main__":
     check_availability()
