@@ -1,4 +1,3 @@
-
 import os
 import time
 from selenium import webdriver
@@ -7,7 +6,6 @@ from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 import requests
 from bs4 import BeautifulSoup
 
@@ -52,35 +50,30 @@ def check_warehouse(warehouse_name):
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    chrome_options.binary_location = "/usr/bin/google-chrome"
     
     driver = None
     try:
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        service = Service('/usr/bin/chromedriver')
+        driver = webdriver.Chrome(service=service, options=chrome_options)
         driver.get(url)
-        time.sleep(4)  # Esperar carga inicial
+        time.sleep(4)
         
-        # Buscar y seleccionar el almacén
         try:
-            # Esperar a que aparezca el select
             select_element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.TAG_NAME, "select"))
             )
             
             select = Select(select_element)
-            # Seleccionar por texto visible exacto
             select.select_by_visible_text(warehouse_name)
             
-            time.sleep(4)  # Esperar que carguen los productos del almacén
+            time.sleep(4)
             
         except Exception as e:
-            print(f"⚠️ No se pudo seleccionar {warehouse_name}: {e}")
+            print(f"️ No se pudo seleccionar {warehouse_name}: {e}")
             return False
         
-        # Analizar el HTML resultante
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        
-        # Buscar productos
         product_blocks = soup.find_all('li', class_=lambda x: x and 'product' in x.split())
         
         for block in product_blocks:
