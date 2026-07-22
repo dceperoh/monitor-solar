@@ -5,7 +5,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 import requests
 from bs4 import BeautifulSoup
 
@@ -13,7 +12,6 @@ def send_telegram_alert(message: str):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_ids = os.getenv("TELEGRAM_CHAT_IDS").split(",")
     
-    success_count = 0
     for i, chat_id in enumerate(chat_ids, 1):
         chat_id = chat_id.strip()
         if not chat_id:
@@ -31,16 +29,12 @@ def send_telegram_alert(message: str):
             result = response.json()
             if result.get('ok'):
                 print(f"✅ Destinatario {i} ({chat_id}): Enviado")
-                success_count += 1
             else:
                 print(f"❌ Destinatario {i} ({chat_id}): {result.get('description')}")
         except Exception as e:
             print(f"❌ Destinatario {i} ({chat_id}): Error - {e}")
-    
-    return success_count > 0
 
 def check_warehouse(warehouse_name):
-    """Verifica disponibilidad en un almacén específico"""
     url = "https://tiendasolar.com/categoria-producto/fotovoltaica/paneles-solares/"
     target_sku = "TRINANEG18RC.27-500"
     
@@ -53,39 +47,48 @@ def check_warehouse(warehouse_name):
     
     driver = None
     try:
-        # Usar chromedriver del PATH (instalado por la acción de GitHub)
         driver = webdriver.Chrome(options=chrome_options)
         driver.get(url)
-        time.sleep(4)
+        time.sleep(5) # Un poco más de tiempo para cargar el JS
         
+        # Intentar seleccionar almacén
         try:
             select_element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.TAG_NAME, "select"))
             )
-            
             select = Select(select_element)
             select.select_by_visible_text(warehouse_name)
-            
-            time.sleep(4)
-            
+            time.sleep(5) # Esperar que recargue los productos
+            print(f"  -> Almacén '{warehouse_name}' seleccionado correctamente.")
         except Exception as e:
-            print(f"⚠️ No se pudo seleccionar {warehouse_name}: {e}")
-            return False
+            print(f"  -> ⚠️ No se pudo seleccionar el almacén: {e}")
         
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         product_blocks = soup.find_all('li', class_=lambda x: x and 'product' in x.split())
+        print(f"  -> Se encontraron {len(product_blocks)} bloques de productos en la página.")
         
+        product_found = False
         for block in product_blocks:
-            if target_sku in block.get_text():
-                if "Añadir al carrito" in block.get_text():
+            text = block.get_text()
+            if target_sku in text:
+                product_found = True
+                print(f"  -> ✅ Producto encontrado en {warehouse_name}!")
+                if "Añadir al carrito" in text:
+                    print(f"  -> 🟢 Estado: ¡Disponible (Añadir al carrito)!")
                     return True
-                elif "Próxima disponibilidad" in block.get_text():
+                elif "Próxima disponibilidad" in text:
+                    print(f"  -> 🟡 Estado: Próxima disponibilidad")
                     return False
-        
+                else:
+                    print(f"  ->  Estado desconocido.")
+                    return False
+                    
+        if not product_found:
+            print(f"  -> ❌ El producto con SKU {target_sku} NO apareció en la página de {warehouse_name}.")
         return False
         
     except Exception as e:
-        print(f"❌ Error en {warehouse_name}: {e}")
+        print(f"❌ Error crítico en {warehouse_name}: {e}")
         return False
     finally:
         if driver:
@@ -96,12 +99,9 @@ def check_availability():
     available_warehouses = []
     
     for warehouse in warehouses:
-        print(f"🔍 Verificando {warehouse}...")
+        print(f"\n🔍 Verificando {warehouse}...")
         if check_warehouse(warehouse):
             available_warehouses.append(warehouse)
-            print(f"  ✅ {warehouse}: DISPONIBLE")
-        else:
-            print(f"   {warehouse}: No disponible")
         time.sleep(2)
     
     if available_warehouses:
@@ -115,9 +115,9 @@ def check_availability():
             "🔗 [Ver en Tienda Solar](https://tiendasolar.com/categoria-producto/fotovoltaica/paneles-solares/)"
         )
         send_telegram_alert(msg)
-        print("✅ Alerta enviada.")
+        print("\n✅ Alerta enviada.")
     else:
-        print("⏳ Producto no disponible en ningún almacén.")
+        print("\n⏳ Producto no disponible en ningún almacén.")
 
 if __name__ == "__main__":
     check_availability()
