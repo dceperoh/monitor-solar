@@ -50,12 +50,11 @@ def check_warehouse(warehouse_name):
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.binary_location = "/usr/bin/google-chrome"
     
     driver = None
     try:
-        service = Service('/usr/bin/chromedriver')
-        driver = webdriver.Chrome(service=service, options=chrome_options)
+        # Usar chromedriver del PATH (instalado por la acción de GitHub)
+        driver = webdriver.Chrome(options=chrome_options)
         driver.get(url)
         time.sleep(4)
         
@@ -70,7 +69,7 @@ def check_warehouse(warehouse_name):
             time.sleep(4)
             
         except Exception as e:
-            print(f"️ No se pudo seleccionar {warehouse_name}: {e}")
+            print(f"⚠️ No se pudo seleccionar {warehouse_name}: {e}")
             return False
         
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -102,7 +101,7 @@ def check_availability():
             available_warehouses.append(warehouse)
             print(f"  ✅ {warehouse}: DISPONIBLE")
         else:
-            print(f"  ⏳ {warehouse}: No disponible")
+            print(f"   {warehouse}: No disponible")
         time.sleep(2)
     
     if available_warehouses:
