@@ -2,9 +2,8 @@ name: Monitor Solar Stock
 
 on:
   schedule:
-    # Ejecutar cada 15 minutos (Cron en UTC)
     - cron: '*/15 * * * *'
-  workflow_dispatch: # Permite ejecutarlo manualmente desde la pestaña "Actions"
+  workflow_dispatch:
 
 jobs:
   check-stock:
@@ -17,6 +16,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver
 
       - name: Install dependencies
         run: pip install -r requirements.txt
