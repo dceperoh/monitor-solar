@@ -1,3 +1,4 @@
+
 import os
 import time
 from selenium import webdriver
@@ -6,6 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import requests
 from bs4 import BeautifulSoup
 
@@ -54,7 +56,7 @@ def check_warehouse(warehouse_name):
     
     driver = None
     try:
-        driver = webdriver.Chrome(options=chrome_options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         driver.get(url)
         time.sleep(4)  # Esperar carga inicial
         
@@ -72,7 +74,7 @@ def check_warehouse(warehouse_name):
             time.sleep(4)  # Esperar que carguen los productos del almacén
             
         except Exception as e:
-            print(f"️ No se pudo seleccionar {warehouse_name}: {e}")
+            print(f"⚠️ No se pudo seleccionar {warehouse_name}: {e}")
             return False
         
         # Analizar el HTML resultante
@@ -91,7 +93,7 @@ def check_warehouse(warehouse_name):
         return False
         
     except Exception as e:
-        print(f" Error en {warehouse_name}: {e}")
+        print(f"❌ Error en {warehouse_name}: {e}")
         return False
     finally:
         if driver:
