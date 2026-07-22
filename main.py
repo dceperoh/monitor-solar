@@ -23,7 +23,7 @@ def send_telegram_alert(message: str):
             response = requests.post(url, json=payload, timeout=10)
             result = response.json()
             if result.get('ok'):
-                print(f"✅ Alerta enviada a destinatario {i}")
+                print(f"✅ Mensaje enviado a destinatario {i}")
             else:
                 print(f"❌ Error API Telegram (destinatario {i}): {result.get('description')}")
         except Exception as e:
@@ -73,22 +73,38 @@ def check_availability():
             available_warehouses.append(warehouse)
             print(f"  ✅ {warehouse}: DISPONIBLE")
         else:
-            print(f"  ⏳ {warehouse}: No disponible")
+            print(f"   {warehouse}: No disponible")
         time.sleep(2)
     
+    # --- LÓGICA DE MENSAJES ---
     if available_warehouses:
+        # MENSAJE ESTRUENDOSO (Cuando SÍ hay stock)
         msg = (
-            " *¡ALERTA DE DISPONIBILIDAD!*\n\n"
-            "Panel Solar Bifacial TRINA SOLAR 500 WP\n"
+            "🚨🚨🚨 *¡¡¡ALERTA MÁXIMA - ¡¡¡STOCK DISPONIBLE!!!* 🚨🚨\n\n"
+            " *¡COMPRA INMEDIATA!* 🟢\n"
+            " *Producto:* Panel Solar Bifacial TRINA SOLAR 500 WP\n"
             "SKU: `TRINANEG18RC.27-500`\n\n"
             "✅ *Disponible en:*\n" + 
             "\n".join([f"  • {w}" for w in available_warehouses]) +
             "\n\n"
-            "🔗 [Ver en Tienda Solar](https://tiendasolar.com/categoria-producto/fotovoltaica/paneles-solares/)"
+            "🏃💨 *¡CORRE A LA WEB ANTES DE QUE SE AGOTE!*\n"
+            "🔗 [Ir a Tienda Solar](https://tiendasolar.com/categoria-producto/fotovoltaica/paneles-solares/)"
         )
         send_telegram_alert(msg)
+        print("🚨 Alerta de DISPONIBILIDAD enviada.")
+        
     else:
-        print(" Producto no disponible en ningún almacén.")
+        # MENSAJE DE MONITOREO (Cuando NO hay stock, pero avisa que revisó)
+        msg = (
+            "🚨 *ALERTA DE MONITOREO - SIN STOCK* \n\n"
+            "🔍 *Estado:* Revisado hace un momento.\n"
+            "📦 *Producto:* Panel Solar TRINA 500 WP\n"
+            " *Almacenes:* Miramar y Siboney\n\n"
+            "⛔ *Resultado:* AÚN NO DISPONIBLE.\n\n"
+            "🔔 *El sistema seguirá vigilando cada 15 minutos.*"
+        )
+        send_telegram_alert(msg)
+        print(" Alerta de MONITOREO enviada.")
 
 if __name__ == "__main__":
     check_availability()
