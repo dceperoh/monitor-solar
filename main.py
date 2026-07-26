@@ -33,35 +33,68 @@ def check_warehouse(warehouse_name):
     url = "https://tiendasolar.com/categoria-producto/fotovoltaica/paneles-solares/"
     target_sku = "TRINANEG18RC.27-500"
     
+    # ==========================================
+    # SOLO SE MODIFICÓ ESTA SECCIÓN (ANTI-BOT)
+    # ==========================================
     chrome_options = Options()
-    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--headless=new")  # Modo headless más moderno y menos detectable
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
     
+    # 1. User-Agent realista (evita bloqueo por "HeadlessChrome")
+    chrome_options.add_argument(
+        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+    )
+    
+    # 2. Ocultar pistas de automatización de Selenium
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option("useAutomationExtension", False)
+    
     driver = None
     try:
         driver = webdriver.Chrome(options=chrome_options)
+        
+        # 3. Inyección CDP para ocultar navigator.webdriver (CRÍTICO contra Wordfence/Anti-Bot)
+        driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
+            'source': '''
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                })
+            '''
+        })
+        # ==========================================
+        # FIN DE LA SECCIÓN ANTI-BOT
+        # ==========================================
+        
         driver.get(url)
-        time.sleep(4)
+        time.sleep(4)  # Tu tiempo de espera original
         
         select_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "select")))
         Select(select_element).select_by_visible_text(warehouse_name)
-        time.sleep(4)
+        time.sleep(4)  # Tu tiempo de espera original para la carga AJAX
         
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+        
+        # TU LÓGICA DE BÚSQUEDA ORIGINAL (INTACTA)
         product_blocks = soup.find_all('li', class_=lambda x: x and 'product' in x.split())
         
         for block in product_blocks:
             if target_sku in block.get_text():
+                # TU BÚSQUEDA DE TEXTO EXACTA ORIGINAL (sin forzar mayúsculas)
                 return "Añadir al carrito" in block.get_text()
+                
         return False
+        
     except Exception as e:
         print(f"❌ Error verificando {warehouse_name}: {e}")
         return False
     finally:
-        if driver: driver.quit()
+        if driver: 
+            driver.quit()
 
 def check_availability():
     warehouses = ["La Habana - Miramar", "La Habana - Siboney"]
@@ -76,9 +109,8 @@ def check_availability():
             print(f"  ⏳ {warehouse}: No disponible")
         time.sleep(2)
     
-    # --- LÓGICA DE MENSAJES ---
+    # --- LÓGICA DE MENSAJES (INTACTA) ---
     if available_warehouses:
-        # MENSAJE ESTRUENDOSO (Solo cuando SÍ hay stock)
         warehouses_text = "\n".join([f"  • {w}" for w in available_warehouses])
         msg = (
             "🚨🚨🚨 *¡¡¡ALERTA MÁXIMA - ¡¡¡STOCK DISPONIBLE!!!* 🚨🚨\n\n"
@@ -93,7 +125,6 @@ def check_availability():
         print("🚨 ¡Alerta de DISPONIBILIDAD enviada a Telegram!")
         
     else:
-        # SILENCIO ABSOLUTO (No envía nada, solo log en GitHub)
         print("⏳ Producto no disponible. (Modo sigilo: no se envía mensaje a Telegram)")
 
 if __name__ == "__main__":
