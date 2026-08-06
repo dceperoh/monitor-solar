@@ -118,7 +118,7 @@ def check_availability():
             "📦 *Producto:* Panel Solar Bifacial TRINA SOLAR 500 WP\n"
             "🔢 *SKU:* `TRINANEG18RC.27-500`\n\n"
             "✅ *Disponible en:*\n" + warehouses_text + "\n\n"
-            "🏃💨 *¡Corre compra 7 paneles que se acaban y a nombre de Dayli...jjjj!*\n\n"
+            "🏃💨 *¡Corre compralos paneles que se acaban ...jjjj!*\n\n"
             "🔗 [Ir a Tienda Solar](https://tiendasolar.com/categoria-producto/fotovoltaica/paneles-solares/)"
         )
         send_telegram_alert(msg)
