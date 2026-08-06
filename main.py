@@ -79,14 +79,28 @@ def check_warehouse(warehouse_name):
         
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         
-        # TU LÓGICA DE BÚSQUEDA ORIGINAL (INTACTA)
+        # --- LÓGICA DE BÚSQUEDA MODIFICADA ---
+        # Busca TODOS los bloques de productos
         product_blocks = soup.find_all('li', class_=lambda x: x and 'product' in x.split())
         
         for block in product_blocks:
-            if target_sku in block.get_text():
-                # TU BÚSQUEDA DE TEXTO EXACTA ORIGINAL (sin forzar mayúsculas)
-                return "Añadir al carrito" in block.get_text()
+            # Obtén el texto completo del bloque del producto (incluye título, descripción, etc.)
+            product_text = block.get_text()
+            
+            # 1. Verifica la condición ORIGINAL (SKU exacto y botón "Añadir al carrito")
+            if target_sku in product_text and "Añadir al carrito" in product_text:
+                return True
+            
+            # 2. Verifica las NUEVAS condiciones (insensible a mayúsculas/minúsculas)
+            #    - Que contenga "Panel Solar"
+            #    - Que contenga "510"
+            #    - Y que tenga el botón "Añadir al carrito"
+            if ("Panel Solar" in product_text or "panel solar" in product_text) and \
+               ("510" in product_text) and \
+               ("Añadir al carrito" in product_text):
+                return True
                 
+        # Si ningún bloque cumple las condiciones, el producto no está disponible
         return False
         
     except Exception as e:
