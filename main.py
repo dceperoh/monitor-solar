@@ -165,9 +165,17 @@ def check_availability():
             print(f"  ⏳ {warehouse}: No disponible")
         time.sleep(2)
     
-    # --- LÓGICA DE MENSAJES MODIFICADA ---
+    # ==========================================
+    # LÓGICA MODIFICADA: SIEMPRE ENVÍA ALERTA
+    # ==========================================
+    
+    # Obtener fecha y hora actual para el mensaje
+    from datetime import datetime
+    now = datetime.now()
+    timestamp = now.strftime("%d/%m/%Y %H:%M:%S")
+    
     if available_warehouses:
-        # Construir mensaje con todos los productos encontrados
+        # --- MENSAJE DE DISPONIBILIDAD (cuando hay stock) ---
         msg = "🚨🚨🚨 *¡¡¡ALERTA MÁXIMA - ¡¡¡STOCK DISPONIBLE!!!* 🚨🚨\n\n"
         msg += "📦 *Productos encontrados:*\n\n"
         
@@ -179,13 +187,29 @@ def check_availability():
             msg += "\n"
         
         msg += "🏃💨 *¡Corre que se acaban!*\n\n"
-        msg += "🔗 [Ir a Tienda Solar](https://tiendasolar.com/categoria-producto/fotovoltaica/paneles-solares/)"
+        msg += "🔗 [Ir a Tienda Solar](https://tiendasolar.com/categoria-producto/fotovoltaica/paneles-solares/)\n\n"
+        msg += f"🕐 *Última verificación:* {timestamp}"
         
         send_telegram_alert(msg)
         print("🚨 ¡Alerta de DISPONIBILIDAD enviada a Telegram!")
         
     else:
-        print("⏳ Productos no disponibles. (Modo sigilo: no se envía mensaje a Telegram)")
+        # --- MENSAJE DE PRUEBA (cuando NO hay stock) ---
+        msg = "🔍 *ALERTA DE PRUEBA - Sistema de Monitoreo Activo* 🔍\n\n"
+        msg += "✅ *Chequeo de disponibilidad realizado correctamente*\n"
+        msg += "📊 *Resultado:* No hay stock disponible en este momento\n"
+        msg += "🏪 *Almacenes verificados:*\n"
+        for warehouse in warehouses:
+            msg += f"  • {warehouse}\n"
+        msg += "\n📌 *Esta es una alerta de prueba para confirmar que el sistema está funcionando.*\n"
+        msg += "🔄 *El próximo chequeo se realizará en el siguiente ciclo.*\n\n"
+        msg += f"🕐 *Última verificación:* {timestamp}\n\n"
+        msg += "🔗 [Ir a Tienda Solar](https://tiendasolar.com/categoria-producto/fotovoltaica/paneles-solares/)"
+        
+        send_telegram_alert(msg)
+        print("📢 ¡Alerta de PRUEBA (sin stock) enviada a Telegram!")
+    
+    print("✅ Proceso de verificación completado.")
 
 if __name__ == "__main__":
     check_availability()
